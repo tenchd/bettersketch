@@ -7,18 +7,18 @@ extern crate fasthash;
 extern crate test;
 
 
-use siphasher::sip::SipHasher;
+//use siphasher::sip::SipHasher;
 use fasthash::xx::Hasher64 as XXHasher;
 use crate::fasthash::FastHasher;
 use std::hash::{Hash,Hasher};
 use ndarray::Array2;
 use ndarray::Dim;
-use rand::Rng;
+//use rand::Rng;
 
 
 fn main() {
     for j in 0..20 {
-        let mut x = XorSketch::make(100,0.5_f64,j);
+        let mut x = XorSketch::new(100,0.5_f64,j);
         // x.update(3);
         // x.update(5);
         for i in 0..10 {
@@ -31,13 +31,12 @@ fn main() {
     }
 }
 
-fn speed_updates(vec_length: u64, reps: u64) {
-    for j in 0..reps{
-        let mut x = XorSketch::make(100,0.5_f64,j);
-        for i in 0..10000 {
-            x.update(i % vec_length);
-        }
+fn speed_updates(vec_length: u64) {
+    let mut x = XorSketch::new(vec_length,0.5_f64,1);
+    for i in 0..1000000 {
+        x.update(i);
     }
+    println!("{}", x.query().expect("Sampling failed."))
 }
 
 // fn main() {
@@ -60,12 +59,12 @@ pub struct XorSketch {
 }
 
 impl XorSketch {
-    pub fn make(vec_length: u64, repetition_factor: f64, sketch_seed: u64) ->  XorSketch {
+    pub fn new(vec_length: u64, repetition_factor: f64, sketch_seed: u64) ->  XorSketch {
         let guesses: u64 = (vec_length as f64).log(2.0_f64).ceil() as u64;
         let repetitions: u64 = (guesses as f64 * repetition_factor).ceil() as u64;
         //println!("guesses: {}, repetitions: {}", guesses, repetitions);
-        let mut plains = Array2::<u64>::zeros(Dim([repetitions as usize, guesses as usize]));
-        let mut checks = Array2::<u32>::zeros(Dim([repetitions as usize, guesses as usize])); 
+        let plains = Array2::<u64>::zeros(Dim([repetitions as usize, guesses as usize]));
+        let checks = Array2::<u32>::zeros(Dim([repetitions as usize, guesses as usize])); 
         //println!("{}", plains.len());
         XorSketch{
             plains,
@@ -130,13 +129,8 @@ mod tests {
     use super::*;
     use test::Bencher;
 
-    // #[test]
-    // fn it_works() {
-    //     assert_eq!(4, add_two(2));
-    // }
-
     #[bench]
     fn bench_sketch_updates(b: &mut Bencher) {
-        b.iter(|| speed_updates(1000,1));
+        b.iter(|| speed_updates(1000000));
     }
 }
