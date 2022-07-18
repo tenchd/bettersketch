@@ -5,11 +5,16 @@ extern crate siphasher;
 extern crate ndarray;
 extern crate fasthash;
 extern crate test;
+extern crate union_find_rs;
 
 mod xorsketch;
 mod connectivity;
+mod utils;
 
 use xorsketch::XorSketch;
+use connectivity::{Edge,GraphSketch};
+
+
 
 
 // fn main() {
@@ -23,12 +28,52 @@ use xorsketch::XorSketch;
 // }
 
 
+// pub struct MyUnionFind{
+//     sets: DisjointSets<usize>,
+// }
 
+// impl MyUnionFind{
+//     pub fn new(n:usize) -> MyUnionFind{
+//         let mut sets: DisjointSets<usize> = DisjointSets::new();
+//         for i in 0..n{
+//             sets.make_set(i).unwrap();
+//         }
+//         MyUnionFind{
+//             sets,
+//         }
+//     }
+
+//     pub fn same(& self, u: usize, v: usize) -> bool{
+//         self.sets.find_set(&u).unwrap() == self.sets.find_set(&v).unwrap()
+//     }
+
+//     pub fn merge(&mut self, u: usize, v: usize){
+//         self.sets.union(&u ,&v).unwrap();
+//     }
+// }
 
 
 
 fn main() {
-    println!("IGNORE ME");
+    let n: u64 = 100;
+    let failure_exp: u64 = 7;
+    let sketch_seed: u64 = 1;
+    let mut g = GraphSketch::new(n, failure_exp, sketch_seed);
+    for i in 0..5{
+        let j = 2*i;
+        g.update(Edge::new(j,j+1));
+    }
+    let result = g.query();
+    for i in 0..10{
+        println!("{}",result.get(i));
+    }
+
+
+    // let mut guy = MyUnionFind::new(10);
+    // println!("{}", guy.same(1,2));
+    // guy.merge(1,2);
+    // println!("{}", guy.same(1,2));
+
 }
 
 fn speed_updates(vec_length: u64) {
